@@ -1,0 +1,29 @@
+﻿---
+BasedOnStyle: Chromium
+AlignAfterOpenBracket: Align
+AlignEscapedNewlines: Left
+AlignOperands: 'true'
+AlignTrailingComments: 'true'
+AllowAllParametersOfDeclarationOnNextLine: 'true'
+AllowShortBlocksOnASingleLine: 'true'
+AllowShortFunctionsOnASingleLine: InlineOnly
+AllowShortLoopsOnASingleLine: 'false'
+AlwaysBreakTemplateDeclarations: 'Yes'
+ColumnLimit: '100'
+CompactNamespaces: 'false'
+IndentWidth: '4'
+Language: Cpp
+NamespaceIndentation: All
+SpaceAfterCStyleCast: 'true'
+SpaceAfterTemplateKeyword: 'true'
+SpaceBeforeAssignmentOperators: 'true'
+SpaceBeforeParens: Always
+SpaceBeforeRangeBasedForLoopColon: 'true'
+SpaceInEmptyParentheses: 'false'
+SpacesBeforeTrailingComments: '3'
+SpacesInAngles: 'false'
+SpacesInParentheses: 'false'
+TabWidth: '4'
+UseTab: Always
+
+...
