@@ -3,3 +3,4 @@ add_library(ZSearch STATIC
 )
 
 target_include_directories(ZSearch PUBLIC include)
+target_link_libraries(ZSearch stdc++fs)

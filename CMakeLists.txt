@@ -2,10 +2,11 @@ cmake_minimum_required (VERSION 3.18)
 
 project (ZSearch VERSION 1.0.0 LANGUAGES CXX)
 add_compile_options(-Wall -Wextra -Wpedantic)
-option(INCLUDE_GOOGLE_TEST "Add Google Test framework to project" OFF)
+option(INCLUDE_GOOGLE_TEST "Add Google Test framework to project" ON)
 
 set (CMAKE_BUILD_TYPE Debug)
 # set (CMAKE_BUILD_TYPE Release)
+set (CMAKE_CXX_STANDARD 17)
 set (DEST_LIB_FOLDER "${PROJECT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/lib")
 set (DEST_APP_FOLDER "${PROJECT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/bin")
 
