@@ -1,8 +1,5 @@
 #include "zsearch.h"
 
-//@temporal:
-#include <iostream>
-
 namespace jlu {
 	void ZSearch::setPath (std::string newPath) {
 		if (false == fs::exists (newPath)) {
@@ -24,26 +21,39 @@ namespace jlu {
 		std::string fileNameLowerCase;
 		clearList (inputStrList);
 
-		for (const std::string file : notesList) {
+		for (const std::string fileName : notesList) {
 			// Busqueda en el nombre del archivo
-			// @todo: controlar el orden en el que se encuentran las palabras para aumentar el peso
-			fileNameLowerCase = str_lowerCase (file);
+			fileNameLowerCase = str_lowerCase (fileName);
+			weight = searchInLine (inputStrList, fileNameLowerCase);
+			bonusWords (weight, fileNameLowerCase);
 
-			for (const std::string needle : inputStrList) {
-				/* @todo: ignorar los artículos indefinidos y definidos (un, una, unos, unas, el,
-				 * los, la, las, lo) */
-				if (std::string::npos != fileNameLowerCase.find (needle)) {
-					weight++;
+			std::ifstream file (pathToNotes + fileName);
+			if (file.is_open ()) {
+				std::string line;
+
+				std::regex headerPattern (R"(^(\#|\#\#|\#\#\#|\#\#\#\#|\#\#\#\#\#)\s.*)",
+										  std::regex::ECMAScript);
+				while (std::getline (file, line)) {
+					std::string lineLowerCase = str_lowerCase (line);
+					weight += searchInLine (inputStrList, lineLowerCase);
+
+					if (std::regex_match (line, headerPattern)) {
+						bonusWords (weight, lineLowerCase);
+					}
 				}
+
+				// Búsqueda en las etiquetas del archivo
+
+				// Búsqueda en el texto de la nota, de mayor a menor valor
+				// - Encabezados de cualquier nivel
+				// - Resto del texto
+			} else {
+				throw "Fail to open file: " + fileName;
 			}
-
-			// Búsqueda en las etiquetas del archivo
-
-			// Búsqueda en el texto de la nota
 
 			// Se añade al resultado
 			if (0 < weight) {
-				output.insert ({weight, file});
+				output.insert ({weight, fileName});
 				weight = 0;
 			}
 		}
@@ -100,6 +110,32 @@ namespace jlu {
 				it = inputStrList.erase (it);
 			} else {
 				++it;
+			}
+		}
+	}
+
+	int ZSearch::searchInLine (const std::vector<std::string>& inputStrList,
+							   const std::string& line) {
+		int output = 0;
+
+		for (const std::string needle : inputStrList) {
+			if (std::string::npos != line.find (needle)) {
+				output++;
+			}
+		}
+
+		return output;
+	}
+
+	// incrementa el peso si además encuentra palabras espceiales
+	void ZSearch::bonusWords (unsigned short& weight, const std::string& line) {
+		if (0 < weight) {
+			std::vector<std::string> bonusWords = {"checklist", "principios", "regalo", "contactos",
+												   "normas"};
+			for (const std::string bonus : bonusWords) {
+				if (std::string::npos != line.find (bonus)) {
+					weight++;
+				}
 			}
 		}
 	}

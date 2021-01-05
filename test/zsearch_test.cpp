@@ -65,3 +65,12 @@ TEST_F (ZSearchTest, searchSomeWords) {
 		LOG << "Weight: " << it->first << " file: " << it->second << std::endl;
 	}
 }
+
+TEST_F (ZSearchTest, searchSomeWordsWithBonusItems) {
+	std::multimap<int, std::string> output = zs.search ("Preparar maletas del viaje a Mayorca");
+	ASSERT_EQ (1, output.size ());
+	for (auto it = output.begin (); it != output.end (); it++) {
+		ASSERT_EQ (3, it->first);
+		LOG << "Weight: " << it->first << " file: " << it->second << std::endl;
+	}
+}

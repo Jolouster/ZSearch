@@ -4,6 +4,7 @@
 #include <cctype>
 #include <exception>
 #include <filesystem>
+#include <fstream>
 #include <iterator>
 #include <map>
 #include <regex>
@@ -25,6 +26,8 @@ namespace jlu {
 		std::string str_lowerCase (std::string str);
 		bool isArticleOrPreposition (const std::string& str);
 		void clearList (std::vector<std::string>& inputStrList);
+		int searchInLine (const std::vector<std::string>& inputStrList, const std::string& line);
+		void bonusWords (unsigned short& weight, const std::string& line);
 		std::string pathToNotes;
 		std::vector<std::string> notesList;
 	};
