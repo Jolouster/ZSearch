@@ -67,10 +67,52 @@ TEST_F (ZSearchTest, searchSomeWords) {
 }
 
 TEST_F (ZSearchTest, searchSomeWordsWithBonusItems) {
-	std::multimap<int, std::string> output = zs.search ("Preparar maletas del viaje a Mayorca");
+	std::multimap<int, std::string> output = zs.search ("Preparar maleta del viaje a Mayorca");
 	ASSERT_EQ (1, output.size ());
+
 	for (auto it = output.begin (); it != output.end (); it++) {
 		ASSERT_EQ (3, it->first);
+		LOG << "Weight: " << it->first << " file: " << it->second << std::endl;
+	}
+}
+
+TEST_F (ZSearchTest, searchATagsOnOneLine) {
+	std::multimap<int, std::string> output =
+		zs.search ("Dieta a base de churros con chocolate #patas");
+	ASSERT_EQ (1, output.size ());
+
+	for (auto it = output.begin (); it != output.end (); it++) {
+		ASSERT_EQ (3, it->first);
+		LOG << "Weight: " << it->first << " file: " << it->second << std::endl;
+	}
+}
+
+TEST_F (ZSearchTest, searchATagAmongOtherInOneLine) {
+	std::multimap<int, std::string> output = zs.search ("Mayonesa rara con patatas #alimentación");
+	ASSERT_EQ (1, output.size ());
+
+	for (auto it = output.begin (); it != output.end (); it++) {
+		ASSERT_EQ (3, it->first);
+		LOG << "Weight: " << it->first << " file: " << it->second << std::endl;
+	}
+}
+
+TEST_F (ZSearchTest, searchATagAmongOtherText) {
+	std::multimap<int, std::string> output = zs.search ("Solucionar el bug en la consulta #SQL");
+	ASSERT_EQ (1, output.size ());
+
+	for (auto it = output.begin (); it != output.end (); it++) {
+		ASSERT_EQ (3, it->first);
+		LOG << "Weight: " << it->first << " file: " << it->second << std::endl;
+	}
+}
+
+TEST_F (ZSearchTest, dontFindWordsInTags) {
+	std::multimap<int, std::string> output = zs.search ("Reforma de la casa");
+	ASSERT_EQ (1, output.size ());
+
+	for (auto it = output.begin (); it != output.end (); it++) {
+		ASSERT_EQ (1, it->first);
 		LOG << "Weight: " << it->first << " file: " << it->second << std::endl;
 	}
 }

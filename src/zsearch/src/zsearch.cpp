@@ -1,5 +1,7 @@
 #include "zsearch.h"
 
+#include <iostream>
+
 namespace jlu {
 	void ZSearch::setPath (std::string newPath) {
 		if (false == fs::exists (newPath)) {
@@ -19,34 +21,47 @@ namespace jlu {
 		std::vector<std::string> inputStrList = split (toFindStrLowerCase, " ");
 		unsigned short weight = 0;
 		std::string fileNameLowerCase;
-		clearList (inputStrList);
+		classifyWords (inputStrList);
 
 		for (const std::string fileName : notesList) {
 			// Busqueda en el nombre del archivo
 			fileNameLowerCase = str_lowerCase (fileName);
-			weight = searchInLine (inputStrList, fileNameLowerCase);
+			weight = searchInFileName (inputStrList, fileNameLowerCase);
 			bonusWords (weight, fileNameLowerCase);
-
 			std::ifstream file (pathToNotes + fileName);
+
 			if (file.is_open ()) {
 				std::string line;
-
+				std::vector<std::string> tagsList;
 				std::regex headerPattern (R"(^(\#|\#\#|\#\#\#|\#\#\#\#|\#\#\#\#\#)\s.*)",
 										  std::regex::ECMAScript);
+				std::regex tagsPattern (
+					R"((^|\s)\#[a-zA-Z0-9\-áéíúóïüöäëÁÉÍÚÓÄËÜÏÖ]+(\.|\,|\s|\!|\?|\)|$))");
+				unsigned short tmpWeight = 0;
+
 				while (std::getline (file, line)) {
 					std::string lineLowerCase = str_lowerCase (line);
-					weight += searchInLine (inputStrList, lineLowerCase);
+					tmpWeight = searchInLine (inputStrList, lineLowerCase);
 
-					if (std::regex_match (line, headerPattern)) {
-						bonusWords (weight, lineLowerCase);
+					if (std::regex_match (line, headerPattern) && (0 < tmpWeight)) {
+						tmpWeight++;   // Palabra usada en una cabecera.
+						bonusWords (tmpWeight, lineLowerCase);
 					}
+
+					if (std::regex_search (line, tagsPattern) && (false == tags.empty ())) {
+						// search tags in line
+						for (std::string tagItem : tags) {
+							if (std::regex_search (lineLowerCase,
+												   std::regex (tagItem, std::regex::icase))) {
+								tmpWeight += 3;
+							}
+						}
+					}
+
+					weight += tmpWeight;
+					tmpWeight = 0;
 				}
 
-				// Búsqueda en las etiquetas del archivo
-
-				// Búsqueda en el texto de la nota, de mayor a menor valor
-				// - Encabezados de cualquier nivel
-				// - Resto del texto
 			} else {
 				throw "Fail to open file: " + fileName;
 			}
@@ -96,17 +111,36 @@ namespace jlu {
 	}
 
 	// We must ignore articles and prepositions
-	bool ZSearch::isArticleOrPreposition (const std::string& str) {
-		std::vector<std::string> toIgnore = {
-			"un",	   "una",	  "unos", "unas",  "el",  "los",	"la",
-			"les",	   "lo",	  "a",	  "antes", "de",  "dentro", "desde",
-			"después", "durante", "en",	  "hasta", "por", "sobre",	"tras"};
+	bool ZSearch::isWordsToIgnore (const std::string& str) {
+		std::vector<std::string> toIgnore = {"un", "una",	 "unos", "unas",  "el",		 "los",
+											 "la", "les",	 "lo",	 "a",	  "antes",	 "con",
+											 "de", "dentro", "del",	 "desde", "después", "durante",
+											 "en", "hasta",	 "por",	 "sobre", "tras"};
 		return (toIgnore.end () != std::find (toIgnore.begin (), toIgnore.end (), str));
 	}
 
-	void ZSearch::clearList (std::vector<std::string>& inputStrList) {
+	bool ZSearch::isTag (const std::string& word) {
+		std::regex pattern (R"((^|\s)\#[a-zA-Z0-9\-\_ñáéíóúäëïöüÁÉÍÓÚ]+)");
+		std::smatch matchStr;
+		bool output = false;
+
+		if (std::regex_search (word, matchStr, pattern)) {
+			output = true;
+		}
+		return output;
+	}
+
+	void ZSearch::classifyWords (std::vector<std::string>& inputStrList) {
+		tags.clear ();
+
 		for (auto it = inputStrList.begin (); it != inputStrList.end ();) {
-			if (isArticleOrPreposition (*it)) {
+			if (isWordsToIgnore (*it)) {
+				it = inputStrList.erase (it);
+			} else if (isTag (*it)) {
+				if (std::find (tags.begin (), tags.end (), *it) == tags.end ()) {
+					tags.push_back (trim (*it));
+				}
+
 				it = inputStrList.erase (it);
 			} else {
 				++it;
@@ -114,12 +148,27 @@ namespace jlu {
 		}
 	}
 
+	int ZSearch::searchInFileName (const std::vector<std::string>& inputStrList,
+								   const std::string& fileName) {
+		int output = 0;
+
+		for (const std::string needle : inputStrList) {
+			if (std::string::npos != fileName.find (needle)) {
+				output++;
+			}
+		}
+
+		return output;
+	}
+
 	int ZSearch::searchInLine (const std::vector<std::string>& inputStrList,
 							   const std::string& line) {
 		int output = 0;
 
 		for (const std::string needle : inputStrList) {
-			if (std::string::npos != line.find (needle)) {
+			std::regex pattern ("(^|\\s)" + needle + "(\\.|\\,|\\-|\\_|\\?|\\!|\\s|$)",
+								std::regex::icase);
+			if (std::regex_search (line, pattern)) {
 				output++;
 			}
 		}
@@ -139,4 +188,10 @@ namespace jlu {
 			}
 		}
 	}
+
+	std::string ZSearch::trim (const std::string& str) {
+		std::regex pattern (R"((^\s{1,}|\s{1,}$))");
+		return std::regex_replace (str, pattern, "");
+	}
+
 }	// namespace jlu
