@@ -34,7 +34,7 @@ include(FetchContent)
 if (INCLUDE_GOOGLE_TEST)
 	FetchContent_Declare(googletest 
 		GIT_REPOSITORY https://github.com/google/googletest.git
-		GIT_TAG master
+		GIT_TAG v1.14.0
 		SOURCE_DIR ${PROJECT_SOURCE_DIR}/external/googletest
 		BINARY_DIR ${PROJECT_BINARY_DIR}/external/googletest
 		INSTALL_DIR ${DEST_LIB_FOLDER}
